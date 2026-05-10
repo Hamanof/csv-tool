@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -54,16 +54,24 @@ function SortableColumn({ config }: { config: ColumnConfig }) {
           id={`col-${config.sourceName}`}
         />
 
-        {/* ソース名 */}
+        {/* ソース名（長い場合は末尾側を表示） */}
         <label
           htmlFor={`col-${config.sourceName}`}
           className={cn(
-            'text-sm shrink-0 min-w-0 max-w-[120px] truncate',
+            'text-sm shrink-0 w-[130px] overflow-hidden',
             config.included ? 'text-gray-700' : 'text-gray-400 line-through',
           )}
           title={config.sourceName}
+          style={{
+            direction: 'rtl',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
         >
-          {config.sourceName}
+          {/* ltr マーカーで文字列の向きを正す（rtlは省略位置を末尾=左端にするためだけに使う） */}
+          <span style={{ direction: 'ltr', unicodeBidi: 'embed' }}>
+            {config.sourceName}
+          </span>
         </label>
 
         {config.included && (
@@ -105,7 +113,9 @@ function SortableColumn({ config }: { config: ColumnConfig }) {
 }
 
 export function ColumnMapping() {
-  const { columnConfigs, reorderColumns } = useConfigStore()
+  const { columnConfigs, reorderColumns, stripPrefixChars } = useConfigStore()
+  const [stripN, setStripN] = useState(0)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -119,6 +129,14 @@ export function ColumnMapping() {
     }
   }
 
+  const handleStrip = () => {
+    if (stripN > 0) {
+      stripPrefixChars(stripN)
+      setStripN(0)
+      inputRef.current?.focus()
+    }
+  }
+
   if (columnConfigs.length === 0) return null
 
   return (
@@ -127,6 +145,29 @@ export function ColumnMapping() {
         <label className="text-xs font-medium text-gray-600">
           列設定（{columnConfigs.filter((c) => c.included).length}/{columnConfigs.length} 列選択）
         </label>
+      </div>
+
+      {/* 一括先頭N文字削除 */}
+      <div className="flex items-center gap-1.5 mb-2 p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs">
+        <span className="text-gray-500 shrink-0">出力名の先頭</span>
+        <input
+          ref={inputRef}
+          type="number"
+          min={0}
+          value={stripN === 0 ? '' : stripN}
+          onChange={(e) => setStripN(Math.max(0, parseInt(e.target.value, 10) || 0))}
+          onKeyDown={(e) => e.key === 'Enter' && handleStrip()}
+          placeholder="0"
+          className="w-12 border border-gray-300 rounded px-1.5 py-0.5 text-center focus:outline-none focus:ring-1 focus:ring-blue-300 bg-white"
+        />
+        <span className="text-gray-500 shrink-0">文字を削除</span>
+        <button
+          onClick={handleStrip}
+          disabled={stripN <= 0}
+          className="ml-auto shrink-0 px-2 py-0.5 bg-amber-500 text-white rounded hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        >
+          一括適用
+        </button>
       </div>
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext

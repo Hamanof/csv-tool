@@ -16,6 +16,8 @@ interface ConfigState {
   initFromHeaders: (headers: string[]) => void
   toggleColumn: (sourceName: string) => void
   setOutputName: (sourceName: string, outputName: string) => void
+  /** 選択中の全列の outputName 先頭 n 文字を削除する */
+  stripPrefixChars: (n: number) => void
   reorderColumns: (activeId: string, overId: string) => void
   addRule: (sourceName: string, rule: Rule) => void
   updateRule: (sourceName: string, ruleIndex: number, rule: Rule) => void
@@ -50,6 +52,15 @@ export const useConfigStore = create<ConfigState>()((set, get) => ({
     set((s) => ({
       columnConfigs: s.columnConfigs.map((c) =>
         c.sourceName === sourceName ? { ...c, outputName } : c,
+      ),
+    }))
+  },
+
+  stripPrefixChars: (n) => {
+    if (n <= 0) return
+    set((s) => ({
+      columnConfigs: s.columnConfigs.map((c) =>
+        c.included ? { ...c, outputName: c.outputName.slice(n) } : c,
       ),
     }))
   },
