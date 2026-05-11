@@ -8,7 +8,7 @@ import { useFileStore } from '../store/fileStore'
 import { useConfigStore } from '../store/configStore'
 
 const PREVIEW_BYTE_LIMIT = 2 * 1024 * 1024 // 2MB
-const PREVIEW_ROW_LIMIT = 100
+const PREVIEW_ROW_LIMIT = 30
 
 async function readAndDecode(file: File, encoding: EncodingType): Promise<string> {
   const slice = file.slice(0, PREVIEW_BYTE_LIMIT)

@@ -77,10 +77,19 @@ function App() {
         <div className="ml-auto flex items-center gap-2">
           <button
             onClick={() => setModal('templateList')}
-            className="text-xs text-gray-500 hover:text-gray-700 border border-gray-300 rounded px-3 py-1 hover:bg-gray-50"
+            className="text-xs text-gray-500 hover:text-gray-700 border border-gray-300 rounded px-3 py-1.5 hover:bg-gray-50"
           >
             テンプレート
           </button>
+          {file && (
+            <button
+              onClick={handleProcess}
+              disabled={isProcessing || outputColumns.length === 0}
+              className="text-sm font-semibold px-4 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {isProcessing ? '処理中…' : '実行してダウンロード'}
+            </button>
+          )}
           <span className="text-xs text-gray-400">完全クライアントサイド処理</span>
         </div>
       </header>
@@ -112,16 +121,15 @@ function App() {
             )}
           </div>
 
-          {/* 処理ボタン（固定フッタ） */}
+          {/* サイドバーフッタ */}
           {file && (
-            <div className="mt-auto p-4 border-t border-gray-200 bg-white">
+            <div className="mt-auto p-4 border-t border-gray-200 bg-white space-y-2">
               {processError && (
-                <p className="text-xs text-red-600 mb-2">{processError}</p>
+                <p className="text-xs text-red-600">{processError}</p>
               )}
               {processResult && !isProcessing && (
-                <p className="text-xs text-green-600 mb-2">
-                  ✓ 完了（{processResult.totalRows} 行処理）—
-                  {' '}
+                <p className="text-xs text-green-600">
+                  ✓ 完了（{processResult.totalRows} 行）—{' '}
                   <button
                     onClick={() => downloadBlob(processResult.blob, buildOutputFilename(file.name))}
                     className="underline hover:no-underline"
@@ -130,24 +138,15 @@ function App() {
                   </button>
                 </p>
               )}
-              <div className="flex gap-2 mb-2">
-                <button
-                  onClick={() => setModal('saveTemplate')}
-                  disabled={outputColumns.length === 0}
-                  className="flex-1 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
-                >
-                  テンプレート保存
-                </button>
-              </div>
               <button
-                onClick={handleProcess}
-                disabled={isProcessing || outputColumns.length === 0}
-                className="w-full py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                onClick={() => setModal('saveTemplate')}
+                disabled={outputColumns.length === 0}
+                className="w-full py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
               >
-                処理を実行してダウンロード
+                テンプレート保存
               </button>
-              <p className="text-xs text-gray-400 text-center mt-1">
-                {outputColumns.length} 列 · 先頭100行プレビュー中
+              <p className="text-xs text-gray-400 text-center">
+                {outputColumns.length} 列 · 先頭30行プレビュー
               </p>
             </div>
           )}
